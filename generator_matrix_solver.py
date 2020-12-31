@@ -1,6 +1,5 @@
 import numpy as np
 import math
-import sympy
 
 
 def input_larger_than(message, lower_limit):
@@ -15,6 +14,7 @@ def input_larger_than(message, lower_limit):
             print("Incorrect input!")
             continue
 
+
 def input_one_or_zero():
     while True:
         try:
@@ -27,9 +27,11 @@ def input_one_or_zero():
             print("Incorrect input!")
             continue
 
+
 def input_matrix(rows, columns):
     print("Input the elements of your generator matrix (left to right, top to bottom):")
-    return np.array([[int(input_one_or_zero()) for x in range(columns)] for y in range(rows)])
+    return np.array([[int(input_one_or_zero()) for _x in range(columns)] for _y in range(rows)])
+
 
 def has_identity_matrix(k, generator_matrix):
     for i in range(k):
@@ -39,35 +41,81 @@ def has_identity_matrix(k, generator_matrix):
 
     return True
 
-def has_standard_form(generator_matrix, k):
-    output_matrix = sympy.Matrix(generator_matrix)
-    output_matrix = output_matrix.rref()
-    return len(output_matrix[1]) == k
+
+def has_standard_form(generator_matrix):
+    rows = generator_matrix.shape[0]
+    for i in range(rows):
+        if all(x == 0 for x in generator_matrix[i]):
+            return False
+
+    for i in range(rows):
+        for j in range(rows):
+            if i != j and np.array_equal(generator_matrix[i], generator_matrix[j]):
+                return False
+
+    return True
+
 
 def get_standard_form(generator_matrix):
-    output_matrix = sympy.Matrix(generator_matrix)
-    output_matrix = output_matrix.rref()
-    output_matrix = np.array(output_matrix[0])
+    matrix = np.array(generator_matrix)
+    rows, cols = matrix.shape
+    raw_rows = list(np.arange(rows))
 
-    return np.where(output_matrix == -1, 1, output_matrix)
+    while raw_rows:
+        position = raw_rows[0]
+
+        if matrix[position, position] == 0:
+
+            row_swap = check_col(matrix, position)
+            if row_swap != -1:
+                matrix[[position, row_swap]] = matrix[[row_swap, position]]
+
+            else:
+                col_swap = get_col_swap(matrix, position)
+                matrix[:, [position, col_swap]] = matrix[:, [col_swap, position]]
+
+        for i in range(rows):
+            if matrix[i, position] == 1 and i != position:
+                matrix[i, :] = matrix[i, :] - matrix[position, :]
+        matrix = np.where(matrix == -1, 1, matrix)
+        raw_rows.pop(0)
+
+    return matrix
+
+
+def check_col(matrix, col):
+    rows = matrix.shape[0]
+    for i in range(col, rows):
+        if matrix[i][col] == 1:
+            return i
+    return -1
+
+
+def get_col_swap(matrix, row):
+    cols = matrix.shape[1]
+    for i in range(row, cols):
+        if matrix[row][i] == 1:
+            return i
+
 
 def get_codes(matrix, k, n):
     output = []
     matrix = ["".join(item) for item in matrix.astype(str)]
-    
-    for i in range(2**k):
-        tmp = i - 2**k
+
+    for i in range(2 ** k):
+        tmp = i - 2 ** k
         code = 0
         for j in range(k):
             code = code ^ (((tmp & (1 << j)) >> j) * int(matrix[j], 2))
         output.append([format(code, "0" + str(n) + "b")])
-    
+
     return np.array(output)
+
 
 def is_linear(codes, n):
     if ("0" * n) not in codes:
         return False
-    
+
     for i in range(len(codes)):
         for j in range(len(codes)):
             if format((int(codes[i][0], base=2) ^ int(codes[j][0], base=2)), "0" + str(n) + "b") not in codes:
@@ -75,43 +123,48 @@ def is_linear(codes, n):
 
     return True
 
+
 def hamming_distance(x, y, n):
     ans = 0
     for i in range(n - 1, -1, -1):
-        ans += not(x>>i&1 == y>>i&1)
+        ans += not (x >> i & 1 == y >> i & 1)
     return ans
 
-def is_perfect(codes, k, n):   
-    min = n
-    
+
+def is_perfect(codes, k, n):
+    _min = n
+
     for i in range(len(codes)):
         for j in range(len(codes)):
-            if i != j and hamming_distance(int(codes[i][0], base=2), int(codes[j][0], base=2), n) < min:
-                min = hamming_distance(int(codes[i][0], base=2), int(codes[j][0], base=2), n)
-    
-    t = math.floor((min - 1) / 2)
+            if i != j and hamming_distance(int(codes[i][0], base=2), int(codes[j][0], base=2), n) < _min:
+                _min = hamming_distance(int(codes[i][0], base=2), int(codes[j][0], base=2), n)
+
+    t = math.floor((_min - 1) / 2)
     tmp_sum = 0
 
     for i in range(t + 1):
         tmp_sum += math.factorial(n) / (math.factorial(i) * math.factorial(n - i))
 
-    return 2**k == 2**n / tmp_sum
+    return 2 ** k == 2 ** n / tmp_sum
+
 
 def code_efficiency(k, n):
-    return k/n
+    return k / n
+
 
 def encode_message(k, n, generator_matrix):
     message = []
     print("Enter your message: ")
-    
+
     for _ in range(k):
         message.append(input_one_or_zero())
-    
+
     message = np.dot(np.array(message), generator_matrix)
     for i in range(n):
         message[i] %= 2
 
     return message
+
 
 def main():
     rows = input_larger_than("Enter number of rows: ", 1)
@@ -121,7 +174,7 @@ def main():
 
     print("For this code k is {} and n is {}!".format(rows, columns))
     print()
-    
+
     generator_matrix = input_matrix(rows, columns)
     print()
     print("Here is the generator matrix: ")
@@ -129,14 +182,14 @@ def main():
     print()
 
     if has_identity_matrix(rows, generator_matrix):
-        print("This generator matrix is already in standard form!") 
+        print("This generator matrix is already in standard form!")
     else:
         print("This generator matrix is not in standard form, lets try to fix that!")
         print()
-        if has_standard_form(generator_matrix, rows):
-            print(get_standard_form(generator_matrix))
-        else:
+        if not has_standard_form(generator_matrix):
             raise Exception("The matrix you have entered is not valid!")
+        else:
+            print(get_standard_form(generator_matrix))
     print()
 
     codes = get_codes(generator_matrix, rows, columns)
@@ -157,6 +210,6 @@ def main():
     print()
     print("Your message was encoded as: {}".format(encoded_message))
 
-    
+
 if __name__ == "__main__":
     main()
