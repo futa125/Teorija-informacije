@@ -8,7 +8,7 @@ def unos_vece_od(poruka, donja_granica):
             podatci = int(input(poruka))
             if podatci >= donja_granica:
                 return podatci
-            else:   
+            else:
                 print("Neispravan unos!")
         except ValueError:
             print("Neispravan unos!")
@@ -42,15 +42,8 @@ def ima_jedinicnu_matricu(k, generirajuca_matrica):
     return True
 
 
-def ima_standardni_oblik(generirajuca_matrica):
-    for i in range(len(generirajuca_matrica)):
-        for j in range(i + 1, len(generirajuca_matrica)):
-            if np.array_equal(generirajuca_matrica[i], generirajuca_matrica[j]):
-                return False
-            if np.array_equal(generirajuca_matrica[:, i], generirajuca_matrica[:, j]):
-                return False
-
-    return True
+def ima_standardni_oblik(k, generirajuca_matrica):
+    return np.linalg.matrix_rank(generirajuca_matrica) == k
 
 
 def nabavi_standardni_oblik(generirajuca_matrica):
@@ -69,7 +62,7 @@ def nabavi_standardni_oblik(generirajuca_matrica):
 
             else:
                 zamjena_stupci = nabavi_zamjena_stupca(matrica, polozaj)
-                matrica[:, [polozaj, zamjena_stupci]] = matrix[:, [zamjena_stupci, polozaj]]
+                matrica[:, [polozaj, zamjena_stupci]] = matrica[:, [zamjena_stupci, polozaj]]
 
         for i in range(redci):
             if matrica[i, polozaj] == 1 and i != polozaj:
@@ -159,7 +152,7 @@ def kodiraj_poruku(k, n, generirajuca_matrica):
     poruka = np.dot(np.array(poruka), generirajuca_matrica)
     for i in range(n):
         poruka[i] %= 2
-    
+
     return ["".join(poruka.astype(str))]
 
 
@@ -182,7 +175,7 @@ def main():
         print("Ova generirajuca matrica je vec u standardnom obliku!")
     else:
         print("Ova generirajuca matrica nije u standardnom obliku, pokusavam ispraviti!")
-        if ima_standardni_oblik(generirajuca_matrica):
+        if ima_standardni_oblik(redci, generirajuca_matrica):
             generirajuca_matrica = nabavi_standardni_oblik(generirajuca_matrica)
             print(generirajuca_matrica)
         else:
