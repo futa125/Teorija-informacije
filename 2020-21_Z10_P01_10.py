@@ -180,6 +180,7 @@ def main():
             print(generirajuca_matrica)
         else:
             raise Exception("Matrica nije ispravna!")
+            input("Pritisni Enter za nastavak...")
     print()
 
     kodovi = nabavi_kodove(generirajuca_matrica, redci, stupci)
