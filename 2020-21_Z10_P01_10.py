@@ -179,8 +179,8 @@ def main():
             generirajuca_matrica = nabavi_standardni_oblik(generirajuca_matrica)
             print(generirajuca_matrica)
         else:
+            input("Došlo je do greške. Unešena je neispravna matrica. Pritisni Enter za nastavak...")
             raise Exception("Matrica nije ispravna!")
-            input("Pritisni Enter za nastavak...")
     print()
 
     kodovi = nabavi_kodove(generirajuca_matrica, redci, stupci)
