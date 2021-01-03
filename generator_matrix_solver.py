@@ -2,142 +2,139 @@ import numpy as np
 import math
 
 
-def input_larger_than(message, lower_limit):
+def unos_vece_od(poruka, donja_granica):
     while True:
         try:
-            data = int(input(message))
-            if data >= lower_limit:
-                return data
-            else:
-                print("Incorrect input!")
+            podatci = int(input(poruka))
+            if podatci >= donja_granica:
+                return podatci
+            else:   
+                print("Neispravan unos!")
         except ValueError:
-            print("Incorrect input!")
+            print("Neispravan unos!")
             continue
 
 
-def input_one_or_zero():
+def unos_jedan_ili_nula():
     while True:
         try:
-            data = int(input("Enter 0 or 1: "))
-            if data == 0 or data == 1:
-                return data
+            podatci = int(input("Unesi 0 ili 1: "))
+            if podatci == 0 or podatci == 1:
+                return podatci
             else:
-                print("Incorrect input!")
+                print("Neispravan unos!")
         except ValueError:
-            print("Incorrect input!")
+            print("Neispravan unos!")
             continue
 
 
-def input_matrix(rows, columns):
-    print("Input the elements of your generator matrix (left to right, top to bottom):")
-    return np.array([[int(input_one_or_zero()) for _x in range(columns)] for _y in range(rows)])
+def unos_matrice(redci, stupci):
+    print("unesi elemente generirajuce matrice (s lijeva na desno, od vrha prema dnu):")
+    return np.array([[int(unos_jedan_ili_nula()) for _x in range(stupci)] for _y in range(redci)])
 
 
-def has_identity_matrix(k, generator_matrix):
+def ima_jedinicnu_matricu(k, generirajuca_matrica):
     for i in range(k):
         for j in range(k):
-            if (i != j and generator_matrix[i][j] != 0) or (i == j and generator_matrix[i][j] != 1):
+            if (i != j and generirajuca_matrica[i][j] != 0) or (i == j and generirajuca_matrica[i][j] != 1):
                 return False
 
     return True
 
 
-def has_standard_form(generator_matrix):
-    rows = generator_matrix.shape[0]
-    for i in range(rows):
-        if all(x == 0 for x in generator_matrix[i]):
-            return False
-
-    for i in range(rows):
-        for j in range(rows):
-            if i != j and np.array_equal(generator_matrix[i], generator_matrix[j]):
+def ima_standardni_oblik(generirajuca_matrica):
+    for i in range(len(generirajuca_matrica)):
+        for j in range(i + 1, len(generirajuca_matrica)):
+            if np.array_equal(generirajuca_matrica[i], generirajuca_matrica[j]):
+                return False
+            if np.array_equal(generirajuca_matrica[:, i], generirajuca_matrica[:, j]):
                 return False
 
     return True
 
 
-def get_standard_form(generator_matrix):
-    matrix = np.array(generator_matrix)
-    rows, cols = matrix.shape
-    raw_rows = list(np.arange(rows))
+def nabavi_standardni_oblik(generirajuca_matrica):
+    matrica = np.array(generirajuca_matrica)
+    redci, stupci = matrica.shape
+    lista_redci = list(np.arange(redci))
 
-    while raw_rows:
-        position = raw_rows[0]
+    while lista_redci:
+        polozaj = lista_redci[0]
 
-        if matrix[position, position] == 0:
+        if matrica[polozaj, polozaj] == 0:
 
-            row_swap = check_col(matrix, position)
-            if row_swap != -1:
-                matrix[[position, row_swap]] = matrix[[row_swap, position]]
+            zamjena_redci = provjera_stupci(matrica, polozaj)
+            if zamjena_redci != -1:
+                matrica[[polozaj, zamjena_redci]] = matrica[[zamjena_redci, polozaj]]
 
             else:
-                col_swap = get_col_swap(matrix, position)
-                matrix[:, [position, col_swap]] = matrix[:, [col_swap, position]]
+                zamjena_stupci = nabavi_zamjena_stupca(matrica, polozaj)
+                matrica[:, [polozaj, zamjena_stupci]] = matrix[:, [zamjena_stupci, polozaj]]
 
-        for i in range(rows):
-            if matrix[i, position] == 1 and i != position:
-                matrix[i, :] = matrix[i, :] - matrix[position, :]
-        matrix = np.where(matrix == -1, 1, matrix)
-        raw_rows.pop(0)
+        for i in range(redci):
+            if matrica[i, polozaj] == 1 and i != polozaj:
+                matrica[i, :] = matrica[i, :] - matrica[polozaj, :]
+        matrica = np.where(matrica == -1, 1, matrica)
+        lista_redci.pop(0)
 
-    return matrix
+    return matrica
 
 
-def check_col(matrix, col):
-    rows = matrix.shape[0]
-    for i in range(col, rows):
-        if matrix[i][col] == 1:
+def provjera_stupci(matrica, stupac):
+    redci = matrica.shape[0]
+    for i in range(stupac, redci):
+        if matrica[i][stupac] == 1:
             return i
     return -1
 
 
-def get_col_swap(matrix, row):
-    cols = matrix.shape[1]
-    for i in range(row, cols):
-        if matrix[row][i] == 1:
+def nabavi_zamjena_stupca(matrica, redak):
+    stupci = matrica.shape[1]
+    for i in range(redak, stupci):
+        if matrica[redak][i] == 1:
             return i
 
 
-def get_codes(matrix, k, n):
-    output = []
-    matrix = ["".join(item) for item in matrix.astype(str)]
+def nabavi_kodove(matrica, k, n):
+    izlaz = []
+    matrica = ["".join(item) for item in matrica.astype(str)]
 
     for i in range(2 ** k):
         tmp = i - 2 ** k
-        code = 0
+        kod = 0
         for j in range(k):
-            code = code ^ (((tmp & (1 << j)) >> j) * int(matrix[j], 2))
-        output.append([format(code, "0" + str(n) + "b")])
+            kod = kod ^ (((tmp & (1 << j)) >> j) * int(matrica[j], 2))
+        izlaz.append([format(kod, "0" + str(n) + "b")])
 
-    return np.array(output)
+    return np.array(izlaz)
 
 
-def is_linear(codes, n):
-    if ("0" * n) not in codes:
+def provjera_linearnost(kodovi, n):
+    if ("0" * n) not in kodovi:
         return False
 
-    for i in range(len(codes)):
-        for j in range(len(codes)):
-            if format((int(codes[i][0], base=2) ^ int(codes[j][0], base=2)), "0" + str(n) + "b") not in codes:
+    for i in range(len(kodovi)):
+        for j in range(len(kodovi)):
+            if format((int(kodovi[i][0], base=2) ^ int(kodovi[j][0], base=2)), "0" + str(n) + "b") not in kodovi:
                 return False
 
     return True
 
 
-def hamming_distance(x, y, n):
+def hammingova_udaljenost(x, y, n):
     ans = 0
     for i in range(n - 1, -1, -1):
         ans += not (x >> i & 1 == y >> i & 1)
     return ans
 
 
-def is_perfect(codes, k, n):
+def provjera_perfektan(kodovi, k, n):
     _min = n
 
-    for i in range(len(codes)):
-        for j in range(len(codes)):
-            if i != j and hamming_distance(int(codes[i][0], base=2), int(codes[j][0], base=2), n) < _min:
-                _min = hamming_distance(int(codes[i][0], base=2), int(codes[j][0], base=2), n)
+    for i in range(len(kodovi)):
+        for j in range(len(kodovi)):
+            if i != j and hammingova_udaljenost(int(kodovi[i][0], base=2), int(kodovi[j][0], base=2), n) < _min:
+                _min = hammingova_udaljenost(int(kodovi[i][0], base=2), int(kodovi[j][0], base=2), n)
 
     t = math.floor((_min - 1) / 2)
     tmp_sum = 0
@@ -148,67 +145,67 @@ def is_perfect(codes, k, n):
     return 2 ** k == 2 ** n / tmp_sum
 
 
-def code_efficiency(k, n):
+def kodna_brzina(k, n):
     return k / n
 
 
-def encode_message(k, n, generator_matrix):
-    message = []
-    print("Enter your message: ")
+def kodiraj_poruku(k, n, generirajuca_matrica):
+    poruka = []
+    print("Unesi poruku: ")
 
     for _ in range(k):
-        message.append(input_one_or_zero())
+        poruka.append(unos_jedan_ili_nula())
 
-    message = np.dot(np.array(message), generator_matrix)
+    poruka = np.dot(np.array(poruka), generirajuca_matrica)
     for i in range(n):
-        message[i] %= 2
-
-    return message
+        poruka[i] %= 2
+    
+    return ["".join(poruka.astype(str))]
 
 
 def main():
-    rows = input_larger_than("Enter number of rows: ", 1)
+    redci = unos_vece_od("Unesi broj redaka: ", 1)
     print()
-    columns = input_larger_than("Enter number of columns: ", rows + 1)
-    print()
-
-    print("For this code k is {} and n is {}!".format(rows, columns))
+    stupci = unos_vece_od("Unesi broj stupaca: ", redci + 1)
     print()
 
-    generator_matrix = input_matrix(rows, columns)
-    print()
-    print("Here is the generator matrix: ")
-    print(generator_matrix)
+    print("Za ovaj kod k je {} a n je {}!".format(redci, stupci))
     print()
 
-    if has_identity_matrix(rows, generator_matrix):
-        print("This generator matrix is already in standard form!")
+    generirajuca_matrica = unos_matrice(redci, stupci)
+    print()
+    print("Ovo je generirajuca matrica: ")
+    print(generirajuca_matrica)
+    print()
+
+    if ima_jedinicnu_matricu(redci, generirajuca_matrica):
+        print("Ova generirajuca matrica je vec u standardnom obliku!")
     else:
-        print("This generator matrix is not in standard form, lets try to fix that!")
-        print()
-        if not has_standard_form(generator_matrix):
-            raise Exception("The matrix you have entered is not valid!")
+        print("Ova generirajuca matrica nije u standardnom obliku, pokusavam ispraviti!")
+        if ima_standardni_oblik(generirajuca_matrica):
+            generirajuca_matrica = nabavi_standardni_oblik(generirajuca_matrica)
+            print(generirajuca_matrica)
         else:
-            print(get_standard_form(generator_matrix))
+            raise Exception("Matrica nije ispravna!")
     print()
 
-    codes = get_codes(generator_matrix, rows, columns)
-    print("Here are all the codes: ")
-    print(codes)
+    kodovi = nabavi_kodove(generirajuca_matrica, redci, stupci)
+    print("Ovo su svi kodovi: ")
+    print(kodovi)
     print()
 
-    print("This code is linear!") if is_linear(codes, columns) else print("This code is not linear!")
+    print("Ovaj kod je linearan!") if provjera_linearnost(kodovi, stupci) else print("Ovaj kod nije linearan!")
     print()
 
-    print("This code is perfect!") if is_perfect(codes, rows, columns) else print("This code is not perfect!")
+    print("Ovaj kod je perfektan!") if provjera_perfektan(kodovi, redci, stupci) else print("Ovaj kod nije perfektan!")
     print()
 
-    print("The efficiency of this code is: {:.2f}%".format(code_efficiency(rows, columns) * 100))
+    print("Brzina ovog koda je: {:.2f}%".format(kodna_brzina(redci, stupci) * 100))
     print()
 
-    encoded_message = encode_message(rows, columns, generator_matrix)
+    kodirana_poruka = kodiraj_poruku(redci, stupci, generirajuca_matrica)
     print()
-    print("Your message was encoded as: {}".format(encoded_message))
+    print("Tvoja poruka je kodirana kao: {}".format(kodirana_poruka))
 
 
 if __name__ == "__main__":
