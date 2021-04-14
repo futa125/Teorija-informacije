@@ -1,3 +1,3 @@
-# generator_matrix_solver
+# Teorija-informacije
 
-- Python script to solve generator matrices
+- Laboratorijska vježba za predmet teorija informacije.
